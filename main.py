@@ -11,7 +11,7 @@ import asyncio
 # Your secrets and keys
 creds_json = os.environ['CREDS_JSON']
 api_key_secret = os.environ['API_KEY']
-
+print(api_key_secret)
 creds_dict = json.loads(creds_json)
 scopes = ['https://www.googleapis.com/auth/drive']
 credentials = service_account.Credentials.from_service_account_info(
