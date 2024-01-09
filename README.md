@@ -26,8 +26,8 @@ Set the following environment variables:
 - `API_KEY`: A secret key to secure your API.
 
 ## Running the Application
-1. Start the server:
-uvicorn main:app --reload
+1. Start the server: `uvicorn main:app --reload`
+
 Replace `main` with the name of your Python file if different.
 
 ## Usage
@@ -37,7 +37,7 @@ Replace `main` with the name of your Python file if different.
 - Dashboard available at `GET /dashboard`.
 
 ## Security
-The `/get_access_token` endpoint is secured with an API key. Ensure to keep your `API_KEY` environment variable secret.
+The `/get_access_token` endpoint is secured with an API key. Ensure to keep your `API_KEY` and `CREDS_JSON` in environment variable secret.
 
 ## Contributing
 This project is personal and not intended for public contribution. However, suggestions and feedback are welcome.
