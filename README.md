@@ -43,5 +43,5 @@ This project is personal and not intended for public contribution. However, sugg
 This project is open-sourced under the MIT License.
 
 ## Acknowledgements
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Google OAuth2 Client Library](https://google-auth.readthedocs.io/en/latest/)
+- [FastAPI](https://fastapi.tiangolo.com/)
+- [Google-oauth2-tool](https://pypi.org/project/google-oauth2-tool/)
