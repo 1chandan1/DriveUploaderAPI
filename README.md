@@ -11,14 +11,11 @@ This repository hosts a FastAPI application designed to generate and refresh acc
 - The service account JSON key
 
 ## Installation
-1. Clone the repository:
-git clone https://github.com/1chandan1/DriveUploaderAPI.git
+Clone the repository and install required Python packages:
+1. `git clone [your-repo-link]`
+2. `cd [project-name]`
+3. `pip install fastapi uvicorn google-auth`
 
-2. Navigate to the project directory:
-cd DriveUploaderAPI
-
-3. Install required Python packages:
-pip install fastapi uvicorn google-auth
 
 ## Configuration
 Set the following environment variables:
