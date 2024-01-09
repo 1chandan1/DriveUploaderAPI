@@ -12,10 +12,10 @@ This repository hosts a FastAPI application designed to generate and refresh acc
 
 ## Installation
 1. Clone the repository:
-git clone [your-repo-link]
+git clone https://github.com/1chandan1/DriveUploaderAPI.git
 
 2. Navigate to the project directory:
-cd [project-name]
+cd DriveUploaderAPI
 
 3. Install required Python packages:
 pip install fastapi uvicorn google-auth
@@ -28,7 +28,6 @@ Set the following environment variables:
 ## Running the Application
 1. Start the server:
 uvicorn main:app --reload
-
 Replace `main` with the name of your Python file if different.
 
 ## Usage
@@ -47,5 +46,5 @@ This project is personal and not intended for public contribution. However, sugg
 This project is open-sourced under the MIT License.
 
 ## Acknowledgements
-- FastAPI Documentation: [https://fastapi.tiangolo.com/](https://fastapi.tiangolo.com/)
-- Google OAuth2 Client Library: [https://google-auth.readthedocs.io/en/latest/](https://google-auth.readthedocs.io/en/latest/)
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [Google OAuth2 Client Library](https://google-auth.readthedocs.io/en/latest/)
