@@ -14,7 +14,7 @@ This repository hosts a FastAPI application designed to generate and refresh acc
 Clone the repository and install required Python packages:
 1. `git clone https://github.com/1chandan1/DriveUploaderAPI.git`
 2. `cd DriveUploaderAPI`
-3. `pip install fastapi uvicorn google-auth`
+3. `pip install -r requirements.txt`
 
 
 ## Configuration
