@@ -35,7 +35,7 @@ def refresh_token():
 # Background task to refresh the token every hour
 async def refresh_token_background():
     while True:
-        await asyncio.sleep(3600)  # Refresh every hour
+        await asyncio.sleep(1200)
         refresh_token()
 
 @app.on_event("startup")
