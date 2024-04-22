@@ -47,7 +47,7 @@ async def startup_event():
 @app.get("/")
 @app.head("/")
 async def root():
-    return {"message": "API is live!"}
+    return {"message": "New API is live!"}
 
 # Middleware for logging requests
 @app.middleware("http")
