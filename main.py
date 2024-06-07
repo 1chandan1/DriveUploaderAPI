@@ -5,7 +5,7 @@ import platform
 from fastapi import FastAPI, HTTPException, status, Header, File, UploadFile
 from fastapi.responses import JSONResponse
 from google.oauth2 import service_account
-from google.auth.transport.requests import Request as GoogleRequest
+from google.auth.transport.requests import Request
 from dotenv import load_dotenv
 import pytesseract
 from PIL import Image
@@ -38,20 +38,6 @@ credentials = service_account.Credentials.from_service_account_info(
     creds_dict, scopes=scopes
 )
 
-
-def refresh_credentials():
-    """Refresh the Google service account token."""
-    global credentials
-    request = GoogleRequest()
-    try:
-        credentials.refresh(request)
-        logger.info("Access token refreshed successfully.")
-    except Exception as e:
-        logger.error(f"Error refreshing access token: {e}")
-        credentials = service_account.Credentials.from_service_account_info(
-            creds_dict, scopes=scopes
-        )
-
 # Initialize FastAPI app
 app = FastAPI()
 
@@ -62,17 +48,17 @@ async def root():
     return {"message": "API is live!"}
 
 
-@app.post("/get_access_token")
-async def get_access_token(api_key: str = Header(...)):
+@app.post("/access_token")
+async def access_token(api_key: str = Header(...)):
     """Secured endpoint to get the access token."""
-    print(credentials.expired)
     if api_key != api_key_secret:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or missing API Key",
         )
-    if credentials.expired:
-        refresh_credentials()
+    print(credentials.expired)
+    if credentials.expired or not credentials.token:
+        credentials.refresh(Request())
     return {"access_token": credentials.token}
 
 
