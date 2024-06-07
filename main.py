@@ -63,7 +63,7 @@ async def root():
 
 
 @app.get("/get_access_token")
-def get_access_token(api_key: str = Header(...)):
+async def get_access_token(api_key: str = Header(...)):
     """Secured endpoint to get the access token."""
     print(credentials.expired)
     if api_key != api_key_secret:
