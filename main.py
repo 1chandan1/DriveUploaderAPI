@@ -2,8 +2,6 @@ import os
 import json
 import logging
 import platform
-import asyncio
-from datetime import datetime
 from fastapi import FastAPI, HTTPException, status, Header, File, UploadFile
 from fastapi.responses import JSONResponse
 from google.oauth2 import service_account
@@ -40,51 +38,43 @@ credentials = service_account.Credentials.from_service_account_info(
     creds_dict, scopes=scopes
 )
 
-def refresh_token():
+
+def refresh_credentials():
     """Refresh the Google service account token."""
+    global credentials
     request = GoogleRequest()
     try:
         credentials.refresh(request)
         logger.info("Access token refreshed successfully.")
     except Exception as e:
         logger.error(f"Error refreshing access token: {e}")
-
-async def refresh_token_background():
-    """Background task to refresh the token periodically."""
-    while True:
-        if credentials.expiry:
-            now = datetime.utcnow()
-            time_to_expiry = (credentials.expiry - now).total_seconds()
-            sleep_time = max(0, time_to_expiry - 300)  # Refresh 5 minutes before expiry
-        else:
-            sleep_time = 1200  # Default to 20 minutes if no expiry is set
-        await asyncio.sleep(sleep_time)
-        refresh_token()
-
-async def lifespan(app: FastAPI):
-    """Run tasks at application startup and shutdown."""
-    refresh_token()  # Refresh the token on startup
-    background_task = asyncio.create_task(refresh_token_background())  # Start the background task
-    yield
-    background_task.cancel()
+        credentials = service_account.Credentials.from_service_account_info(
+            creds_dict, scopes=scopes
+        )
 
 # Initialize FastAPI app
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
+
 
 @app.get("/")
 async def root():
     """Root endpoint, publicly accessible."""
     return {"message": "API is live!"}
 
+
 @app.get("/get_access_token")
 def get_access_token(api_key: str = Header(...)):
     """Secured endpoint to get the access token."""
+    print(credentials.expired)
     if api_key != api_key_secret:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or missing API Key",
         )
+    if credentials.expired:
+        refresh_credentials()
     return {"access_token": credentials.token}
+
 
 @app.post("/pdf-ocr")
 async def ocr(file: UploadFile = File(...)):
@@ -102,6 +92,8 @@ async def ocr(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host='0.0.0.0', port=5000)
+
+    uvicorn.run(app, host="0.0.0.0", port=5000)
