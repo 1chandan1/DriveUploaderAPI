@@ -103,7 +103,7 @@ def get_dates_with_gpt(file_data: bytes, resolution: int = 200) -> str:
         raise
 
 
-@app.post("/pdf-ocr-gpt")
+@app.post("/pdf_dates")
 async def ocr(file: UploadFile = File(...)):
     """Endpoint to perform OCR on a PDF file and extract DOB and DOD."""
     file_data = await file.read()
@@ -118,4 +118,4 @@ async def ocr(file: UploadFile = File(...)):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
