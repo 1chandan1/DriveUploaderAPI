@@ -6,7 +6,6 @@ WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && \
-    apt-get install -y tesseract-ocr libtesseract-dev libleptonica-dev && \
     apt-get install -y tesseract-ocr-fra && \
     apt-get clean
 
@@ -16,8 +15,6 @@ COPY . /app
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Make port 5000 available to the world outside this container
-EXPOSE 5000
 
 # Run app.py when the container launches
 CMD ["python", "main.py"]
