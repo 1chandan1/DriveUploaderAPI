@@ -5,3 +5,4 @@ pyproject.toml
 replit.nix
 .replit
 .env
+.venv
