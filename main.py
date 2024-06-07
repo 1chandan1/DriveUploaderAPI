@@ -1,7 +1,9 @@
+import asyncio
 import os
 import json
 import logging
 import platform
+from concurrent.futures import ThreadPoolExecutor
 from fastapi import FastAPI, HTTPException, status, Header, File, UploadFile
 from fastapi.responses import JSONResponse
 from google.oauth2 import service_account
@@ -41,6 +43,9 @@ credentials = service_account.Credentials.from_service_account_info(
 # Initialize FastAPI app
 app = FastAPI()
 
+# Initialize ThreadPoolExecutor
+executor = ThreadPoolExecutor(max_workers=4)
+
 
 @app.get("/")
 async def root():
@@ -62,18 +67,28 @@ async def access_token(api_key: str = Header(...)):
     return {"access_token": credentials.token}
 
 
-@app.post("/pdf-ocr")
-async def ocr(file: UploadFile = File(...)):
-    """Endpoint to perform OCR on a PDF file."""
-    resolution = 200
+def perform_ocr(file_data: bytes, resolution: int = 200) -> str:
     try:
-        pdf_document = fitz.open(stream=await file.read(), filetype="pdf")
+        pdf_document = fitz.open(stream=file_data, filetype="pdf")
         text = ""
         for page_num in range(len(pdf_document)):
             page = pdf_document.load_page(page_num)
             pix = page.get_pixmap(matrix=fitz.Matrix(resolution / 72, resolution / 72))
             img = Image.open(io.BytesIO(pix.tobytes()))
             text += pytesseract.image_to_string(img, lang="fra")
+        return text
+    except Exception as e:
+        logger.error(f"OCR error: {e}")
+        raise
+
+
+@app.post("/pdf-ocr")
+async def ocr(file: UploadFile = File(...)):
+    """Endpoint to perform OCR on a PDF file."""
+    file_data = await file.read()
+    try:
+        loop = asyncio.get_running_loop()
+        text = await loop.run_in_executor(executor, perform_ocr, file_data)
         return JSONResponse(content={"text": text})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
