@@ -1,15 +1,15 @@
 import asyncio
+import base64
 import os
 import json
-import logging
 import platform
-from concurrent.futures import ThreadPoolExecutor
-from fastapi import FastAPI, HTTPException, status, Header, File, UploadFile
-from fastapi.responses import JSONResponse
-from google.oauth2 import service_account
-from google.auth.transport.requests import Request
+from openai import OpenAI
 from dotenv import load_dotenv
-import pytesseract
+from google.oauth2 import service_account
+from fastapi.responses import JSONResponse
+from concurrent.futures import ThreadPoolExecutor
+from google.auth.transport.requests import Request
+from fastapi import FastAPI, HTTPException, status, Header, File, UploadFile
 from PIL import Image
 import fitz  # PyMuPDF
 import io
@@ -17,22 +17,12 @@ import io
 # Load environment variables from .env file
 load_dotenv(dotenv_path=".env")
 
-# Set Tesseract path for Windows
-if platform.system() == "Windows":
-    tesseract_path = "C:/Program Files/Tesseract-OCR/tesseract.exe"
-    pytesseract.pytesseract.tesseract_cmd = tesseract_path
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 # Retrieve secrets and keys from environment variables
 creds_json = os.environ.get("CREDS_JSON")
 api_key_secret = os.environ.get("API_KEY")
+gpt_key = os.environ.get("GPT_KEY")
+openai_client = OpenAI(api_key=gpt_key)
 
-if not creds_json or not api_key_secret:
-    logger.error("Environment variables CREDS_JSON or API_KEY are missing.")
-    raise ValueError("Missing required environment variables.")
 
 creds_dict = json.loads(creds_json)
 scopes = ["https://www.googleapis.com/auth/drive"]
@@ -67,29 +57,61 @@ async def access_token(api_key: str = Header(...)):
     return {"access_token": credentials.token}
 
 
-def perform_ocr(file_data: bytes, resolution: int = 200) -> str:
+def get_image_result(base64_image):
+    prompt = """
+    get dob and dod from the deah cirtificate
+    if not found then ""
+    json
+    {
+        "dob": (dd/mm/yyyy),
+        "dod": (dd/mm/yyyy)
+    }
+    """
+    response = openai_client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
+                    },
+                ],
+            }
+        ],
+        response_format={"type": "json_object"},
+        max_tokens=300,
+    )
+    result = eval(response.choices[0].message.content)
+    return result
+
+
+def get_dates_with_gpt(file_data: bytes, resolution: int = 200) -> str:
     try:
         pdf_document = fitz.open(stream=file_data, filetype="pdf")
-        text = ""
-        for page_num in range(len(pdf_document)):
-            page = pdf_document.load_page(page_num)
-            pix = page.get_pixmap(matrix=fitz.Matrix(resolution / 72, resolution / 72))
-            img = Image.open(io.BytesIO(pix.tobytes()))
-            text += pytesseract.image_to_string(img, lang="fra")
-        return text
+        page = pdf_document.load_page(0)  # Process only the first page
+        pix = page.get_pixmap(matrix=fitz.Matrix(resolution / 72, resolution / 72))
+        img = Image.open(io.BytesIO(pix.tobytes()))
+        buffered = io.BytesIO()
+        img.save(buffered, format="JPEG")
+        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+        response = get_image_result(img_str)
+        return response
     except Exception as e:
-        logger.error(f"OCR error: {e}")
         raise
 
 
-@app.post("/pdf-ocr")
+@app.post("/pdf-ocr-gpt")
 async def ocr(file: UploadFile = File(...)):
-    """Endpoint to perform OCR on a PDF file."""
+    """Endpoint to perform OCR on a PDF file and extract DOB and DOD."""
     file_data = await file.read()
     try:
         loop = asyncio.get_running_loop()
-        text = await loop.run_in_executor(executor, perform_ocr, file_data)
-        return JSONResponse(content={"text": text})
+        dates = await loop.run_in_executor(None, get_dates_with_gpt, file_data)
+        return JSONResponse(content=dates)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
