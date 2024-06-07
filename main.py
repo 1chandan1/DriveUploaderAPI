@@ -62,7 +62,7 @@ async def root():
     return {"message": "API is live!"}
 
 
-@app.get("/get_access_token")
+@app.post("/get_access_token")
 async def get_access_token(api_key: str = Header(...)):
     """Secured endpoint to get the access token."""
     print(credentials.expired)
