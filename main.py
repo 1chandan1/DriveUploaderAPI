@@ -2,7 +2,6 @@ import asyncio
 import base64
 import os
 import json
-import platform
 from openai import OpenAI
 from dotenv import load_dotenv
 from google.oauth2 import service_account
