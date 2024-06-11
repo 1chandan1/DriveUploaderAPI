@@ -35,7 +35,7 @@ app = FastAPI()
 # Initialize ThreadPoolExecutor
 executor = ThreadPoolExecutor(max_workers=4)
 
-
+@app.head("/")
 @app.get("/")
 async def root():
     """Root endpoint, publicly accessible."""
