@@ -34,7 +34,6 @@ credentials = service_account.Credentials.from_service_account_info(
 def get_image_result(base64_image):
     prompt = """
     get dob and dod from the deah cirtificate
-    if not found then ""
     json
     {
         "dob": (dd/mm/yyyy),
